@@ -1,0 +1,4 @@
+/home/yza476/Downloads/simple_visual_odometry/build/CMakeFiles/edit_cache.dir
+/home/yza476/Downloads/simple_visual_odometry/build/CMakeFiles/featuredetector.dir
+/home/yza476/Downloads/simple_visual_odometry/build/CMakeFiles/rebuild_cache.dir
+/home/yza476/Downloads/simple_visual_odometry/build/CMakeFiles/klt.dir
