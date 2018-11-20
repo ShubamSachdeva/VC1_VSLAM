@@ -1,4 +1,4 @@
-# Install script for directory: /home/yza476/Downloads/simple_visual_odometry
+# Install script for directory: /home/nvidia/CMPT742/SimpleVisualOdometry/simple_visual_odometry
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -40,5 +40,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/home/yza476/Downloads/simple_visual_odometry/build/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/nvidia/CMPT742/SimpleVisualOdometry/simple_visual_odometry/build/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

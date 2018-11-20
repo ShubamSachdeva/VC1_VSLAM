@@ -43,10 +43,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/yza476/Downloads/simple_visual_odometry
+CMAKE_SOURCE_DIR = /home/nvidia/CMPT742/SimpleVisualOdometry/simple_visual_odometry
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/yza476/Downloads/simple_visual_odometry/build
+CMAKE_BINARY_DIR = /home/nvidia/CMPT742/SimpleVisualOdometry/simple_visual_odometry/build
 
 # Include any dependencies generated for this target.
 include CMakeFiles/featuredetector.dir/depend.make
@@ -59,16 +59,16 @@ include CMakeFiles/featuredetector.dir/flags.make
 
 CMakeFiles/featuredetector.dir/test/featuredetector.cpp.o: CMakeFiles/featuredetector.dir/flags.make
 CMakeFiles/featuredetector.dir/test/featuredetector.cpp.o: ../test/featuredetector.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/yza476/Downloads/simple_visual_odometry/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/featuredetector.dir/test/featuredetector.cpp.o"
-	g++   $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/featuredetector.dir/test/featuredetector.cpp.o -c /home/yza476/Downloads/simple_visual_odometry/test/featuredetector.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/nvidia/CMPT742/SimpleVisualOdometry/simple_visual_odometry/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/featuredetector.dir/test/featuredetector.cpp.o"
+	g++   $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/featuredetector.dir/test/featuredetector.cpp.o -c /home/nvidia/CMPT742/SimpleVisualOdometry/simple_visual_odometry/test/featuredetector.cpp
 
 CMakeFiles/featuredetector.dir/test/featuredetector.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/featuredetector.dir/test/featuredetector.cpp.i"
-	g++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/yza476/Downloads/simple_visual_odometry/test/featuredetector.cpp > CMakeFiles/featuredetector.dir/test/featuredetector.cpp.i
+	g++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/nvidia/CMPT742/SimpleVisualOdometry/simple_visual_odometry/test/featuredetector.cpp > CMakeFiles/featuredetector.dir/test/featuredetector.cpp.i
 
 CMakeFiles/featuredetector.dir/test/featuredetector.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/featuredetector.dir/test/featuredetector.cpp.s"
-	g++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/yza476/Downloads/simple_visual_odometry/test/featuredetector.cpp -o CMakeFiles/featuredetector.dir/test/featuredetector.cpp.s
+	g++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/nvidia/CMPT742/SimpleVisualOdometry/simple_visual_odometry/test/featuredetector.cpp -o CMakeFiles/featuredetector.dir/test/featuredetector.cpp.s
 
 CMakeFiles/featuredetector.dir/test/featuredetector.cpp.o.requires:
 
@@ -90,26 +90,31 @@ featuredetector_EXTERNAL_OBJECTS =
 
 featuredetector: CMakeFiles/featuredetector.dir/test/featuredetector.cpp.o
 featuredetector: CMakeFiles/featuredetector.dir/build.make
-featuredetector: /usr/lib/x86_64-linux-gnu/libopencv_videostab.so.2.4.9
-featuredetector: /usr/lib/x86_64-linux-gnu/libopencv_ts.so.2.4.9
-featuredetector: /usr/lib/x86_64-linux-gnu/libopencv_superres.so.2.4.9
-featuredetector: /usr/lib/x86_64-linux-gnu/libopencv_stitching.so.2.4.9
-featuredetector: /usr/lib/x86_64-linux-gnu/libopencv_ocl.so.2.4.9
-featuredetector: /usr/lib/x86_64-linux-gnu/libopencv_gpu.so.2.4.9
-featuredetector: /usr/lib/x86_64-linux-gnu/libopencv_contrib.so.2.4.9
-featuredetector: /usr/lib/x86_64-linux-gnu/libopencv_photo.so.2.4.9
-featuredetector: /usr/lib/x86_64-linux-gnu/libopencv_legacy.so.2.4.9
-featuredetector: /usr/lib/x86_64-linux-gnu/libopencv_video.so.2.4.9
-featuredetector: /usr/lib/x86_64-linux-gnu/libopencv_objdetect.so.2.4.9
-featuredetector: /usr/lib/x86_64-linux-gnu/libopencv_ml.so.2.4.9
-featuredetector: /usr/lib/x86_64-linux-gnu/libopencv_calib3d.so.2.4.9
-featuredetector: /usr/lib/x86_64-linux-gnu/libopencv_features2d.so.2.4.9
-featuredetector: /usr/lib/x86_64-linux-gnu/libopencv_highgui.so.2.4.9
-featuredetector: /usr/lib/x86_64-linux-gnu/libopencv_imgproc.so.2.4.9
-featuredetector: /usr/lib/x86_64-linux-gnu/libopencv_flann.so.2.4.9
-featuredetector: /usr/lib/x86_64-linux-gnu/libopencv_core.so.2.4.9
+featuredetector: /home/nvidia/CMPT742/opencv/build/lib/libopencv_videostab.so.2.4.13
+featuredetector: /home/nvidia/CMPT742/opencv/build/lib/libopencv_ts.a
+featuredetector: /home/nvidia/CMPT742/opencv/build/lib/libopencv_superres.so.2.4.13
+featuredetector: /home/nvidia/CMPT742/opencv/build/lib/libopencv_stitching.so.2.4.13
+featuredetector: /home/nvidia/CMPT742/opencv/build/lib/libopencv_contrib.so.2.4.13
+featuredetector: /home/nvidia/CMPT742/opencv/build/lib/libopencv_nonfree.so.2.4.13
+featuredetector: /home/nvidia/CMPT742/opencv/build/lib/libopencv_ocl.so.2.4.13
+featuredetector: /home/nvidia/CMPT742/opencv/build/lib/libopencv_gpu.so.2.4.13
+featuredetector: /home/nvidia/CMPT742/opencv/build/lib/libopencv_photo.so.2.4.13
+featuredetector: /home/nvidia/CMPT742/opencv/build/lib/libopencv_objdetect.so.2.4.13
+featuredetector: /home/nvidia/CMPT742/opencv/build/lib/libopencv_legacy.so.2.4.13
+featuredetector: /home/nvidia/CMPT742/opencv/build/lib/libopencv_video.so.2.4.13
+featuredetector: /home/nvidia/CMPT742/opencv/build/lib/libopencv_ml.so.2.4.13
+featuredetector: /home/nvidia/CMPT742/opencv/build/lib/libopencv_calib3d.so.2.4.13
+featuredetector: /home/nvidia/CMPT742/opencv/build/lib/libopencv_features2d.so.2.4.13
+featuredetector: /home/nvidia/CMPT742/opencv/build/lib/libopencv_highgui.so.2.4.13
+featuredetector: /home/nvidia/CMPT742/opencv/build/lib/libopencv_imgproc.so.2.4.13
+featuredetector: /home/nvidia/CMPT742/opencv/build/lib/libopencv_flann.so.2.4.13
+featuredetector: /home/nvidia/CMPT742/opencv/build/lib/libopencv_core.so.2.4.13
+featuredetector: /usr/local/cuda-9.0/lib64/libcudart.so
+featuredetector: /usr/local/cuda-9.0/lib64/libnppc.so
+featuredetector: /usr/local/cuda-9.0/lib64/libnpps.so
+featuredetector: /usr/local/cuda-9.0/lib64/libcufft.so
 featuredetector: CMakeFiles/featuredetector.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/yza476/Downloads/simple_visual_odometry/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable featuredetector"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/nvidia/CMPT742/SimpleVisualOdometry/simple_visual_odometry/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable featuredetector"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/featuredetector.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
@@ -126,6 +131,6 @@ CMakeFiles/featuredetector.dir/clean:
 .PHONY : CMakeFiles/featuredetector.dir/clean
 
 CMakeFiles/featuredetector.dir/depend:
-	cd /home/yza476/Downloads/simple_visual_odometry/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/yza476/Downloads/simple_visual_odometry /home/yza476/Downloads/simple_visual_odometry /home/yza476/Downloads/simple_visual_odometry/build /home/yza476/Downloads/simple_visual_odometry/build /home/yza476/Downloads/simple_visual_odometry/build/CMakeFiles/featuredetector.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/nvidia/CMPT742/SimpleVisualOdometry/simple_visual_odometry/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/nvidia/CMPT742/SimpleVisualOdometry/simple_visual_odometry /home/nvidia/CMPT742/SimpleVisualOdometry/simple_visual_odometry /home/nvidia/CMPT742/SimpleVisualOdometry/simple_visual_odometry/build /home/nvidia/CMPT742/SimpleVisualOdometry/simple_visual_odometry/build /home/nvidia/CMPT742/SimpleVisualOdometry/simple_visual_odometry/build/CMakeFiles/featuredetector.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/featuredetector.dir/depend
 

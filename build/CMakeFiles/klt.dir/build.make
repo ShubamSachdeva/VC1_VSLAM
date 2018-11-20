@@ -43,10 +43,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/yza476/Downloads/simple_visual_odometry
+CMAKE_SOURCE_DIR = /home/nvidia/CMPT742/SimpleVisualOdometry/simple_visual_odometry
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/yza476/Downloads/simple_visual_odometry/build
+CMAKE_BINARY_DIR = /home/nvidia/CMPT742/SimpleVisualOdometry/simple_visual_odometry/build
 
 # Include any dependencies generated for this target.
 include CMakeFiles/klt.dir/depend.make
@@ -59,16 +59,16 @@ include CMakeFiles/klt.dir/flags.make
 
 CMakeFiles/klt.dir/test/KLT.cpp.o: CMakeFiles/klt.dir/flags.make
 CMakeFiles/klt.dir/test/KLT.cpp.o: ../test/KLT.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/yza476/Downloads/simple_visual_odometry/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/klt.dir/test/KLT.cpp.o"
-	g++   $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/klt.dir/test/KLT.cpp.o -c /home/yza476/Downloads/simple_visual_odometry/test/KLT.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/nvidia/CMPT742/SimpleVisualOdometry/simple_visual_odometry/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/klt.dir/test/KLT.cpp.o"
+	g++   $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/klt.dir/test/KLT.cpp.o -c /home/nvidia/CMPT742/SimpleVisualOdometry/simple_visual_odometry/test/KLT.cpp
 
 CMakeFiles/klt.dir/test/KLT.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/klt.dir/test/KLT.cpp.i"
-	g++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/yza476/Downloads/simple_visual_odometry/test/KLT.cpp > CMakeFiles/klt.dir/test/KLT.cpp.i
+	g++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/nvidia/CMPT742/SimpleVisualOdometry/simple_visual_odometry/test/KLT.cpp > CMakeFiles/klt.dir/test/KLT.cpp.i
 
 CMakeFiles/klt.dir/test/KLT.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/klt.dir/test/KLT.cpp.s"
-	g++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/yza476/Downloads/simple_visual_odometry/test/KLT.cpp -o CMakeFiles/klt.dir/test/KLT.cpp.s
+	g++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/nvidia/CMPT742/SimpleVisualOdometry/simple_visual_odometry/test/KLT.cpp -o CMakeFiles/klt.dir/test/KLT.cpp.s
 
 CMakeFiles/klt.dir/test/KLT.cpp.o.requires:
 
@@ -90,26 +90,31 @@ klt_EXTERNAL_OBJECTS =
 
 klt: CMakeFiles/klt.dir/test/KLT.cpp.o
 klt: CMakeFiles/klt.dir/build.make
-klt: /usr/lib/x86_64-linux-gnu/libopencv_videostab.so.2.4.9
-klt: /usr/lib/x86_64-linux-gnu/libopencv_ts.so.2.4.9
-klt: /usr/lib/x86_64-linux-gnu/libopencv_superres.so.2.4.9
-klt: /usr/lib/x86_64-linux-gnu/libopencv_stitching.so.2.4.9
-klt: /usr/lib/x86_64-linux-gnu/libopencv_ocl.so.2.4.9
-klt: /usr/lib/x86_64-linux-gnu/libopencv_gpu.so.2.4.9
-klt: /usr/lib/x86_64-linux-gnu/libopencv_contrib.so.2.4.9
-klt: /usr/lib/x86_64-linux-gnu/libopencv_photo.so.2.4.9
-klt: /usr/lib/x86_64-linux-gnu/libopencv_legacy.so.2.4.9
-klt: /usr/lib/x86_64-linux-gnu/libopencv_video.so.2.4.9
-klt: /usr/lib/x86_64-linux-gnu/libopencv_objdetect.so.2.4.9
-klt: /usr/lib/x86_64-linux-gnu/libopencv_ml.so.2.4.9
-klt: /usr/lib/x86_64-linux-gnu/libopencv_calib3d.so.2.4.9
-klt: /usr/lib/x86_64-linux-gnu/libopencv_features2d.so.2.4.9
-klt: /usr/lib/x86_64-linux-gnu/libopencv_highgui.so.2.4.9
-klt: /usr/lib/x86_64-linux-gnu/libopencv_imgproc.so.2.4.9
-klt: /usr/lib/x86_64-linux-gnu/libopencv_flann.so.2.4.9
-klt: /usr/lib/x86_64-linux-gnu/libopencv_core.so.2.4.9
+klt: /home/nvidia/CMPT742/opencv/build/lib/libopencv_videostab.so.2.4.13
+klt: /home/nvidia/CMPT742/opencv/build/lib/libopencv_ts.a
+klt: /home/nvidia/CMPT742/opencv/build/lib/libopencv_superres.so.2.4.13
+klt: /home/nvidia/CMPT742/opencv/build/lib/libopencv_stitching.so.2.4.13
+klt: /home/nvidia/CMPT742/opencv/build/lib/libopencv_contrib.so.2.4.13
+klt: /home/nvidia/CMPT742/opencv/build/lib/libopencv_nonfree.so.2.4.13
+klt: /home/nvidia/CMPT742/opencv/build/lib/libopencv_ocl.so.2.4.13
+klt: /home/nvidia/CMPT742/opencv/build/lib/libopencv_gpu.so.2.4.13
+klt: /home/nvidia/CMPT742/opencv/build/lib/libopencv_photo.so.2.4.13
+klt: /home/nvidia/CMPT742/opencv/build/lib/libopencv_objdetect.so.2.4.13
+klt: /home/nvidia/CMPT742/opencv/build/lib/libopencv_legacy.so.2.4.13
+klt: /home/nvidia/CMPT742/opencv/build/lib/libopencv_video.so.2.4.13
+klt: /home/nvidia/CMPT742/opencv/build/lib/libopencv_ml.so.2.4.13
+klt: /home/nvidia/CMPT742/opencv/build/lib/libopencv_calib3d.so.2.4.13
+klt: /home/nvidia/CMPT742/opencv/build/lib/libopencv_features2d.so.2.4.13
+klt: /home/nvidia/CMPT742/opencv/build/lib/libopencv_highgui.so.2.4.13
+klt: /home/nvidia/CMPT742/opencv/build/lib/libopencv_imgproc.so.2.4.13
+klt: /home/nvidia/CMPT742/opencv/build/lib/libopencv_flann.so.2.4.13
+klt: /home/nvidia/CMPT742/opencv/build/lib/libopencv_core.so.2.4.13
+klt: /usr/local/cuda-9.0/lib64/libcudart.so
+klt: /usr/local/cuda-9.0/lib64/libnppc.so
+klt: /usr/local/cuda-9.0/lib64/libnpps.so
+klt: /usr/local/cuda-9.0/lib64/libcufft.so
 klt: CMakeFiles/klt.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/yza476/Downloads/simple_visual_odometry/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable klt"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/nvidia/CMPT742/SimpleVisualOdometry/simple_visual_odometry/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable klt"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/klt.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
@@ -126,6 +131,6 @@ CMakeFiles/klt.dir/clean:
 .PHONY : CMakeFiles/klt.dir/clean
 
 CMakeFiles/klt.dir/depend:
-	cd /home/yza476/Downloads/simple_visual_odometry/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/yza476/Downloads/simple_visual_odometry /home/yza476/Downloads/simple_visual_odometry /home/yza476/Downloads/simple_visual_odometry/build /home/yza476/Downloads/simple_visual_odometry/build /home/yza476/Downloads/simple_visual_odometry/build/CMakeFiles/klt.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/nvidia/CMPT742/SimpleVisualOdometry/simple_visual_odometry/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/nvidia/CMPT742/SimpleVisualOdometry/simple_visual_odometry /home/nvidia/CMPT742/SimpleVisualOdometry/simple_visual_odometry /home/nvidia/CMPT742/SimpleVisualOdometry/simple_visual_odometry/build /home/nvidia/CMPT742/SimpleVisualOdometry/simple_visual_odometry/build /home/nvidia/CMPT742/SimpleVisualOdometry/simple_visual_odometry/build/CMakeFiles/klt.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/klt.dir/depend
 

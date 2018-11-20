@@ -1,4 +1,8 @@
-/home/yza476/Downloads/simple_visual_odometry/build/CMakeFiles/edit_cache.dir
-/home/yza476/Downloads/simple_visual_odometry/build/CMakeFiles/featuredetector.dir
-/home/yza476/Downloads/simple_visual_odometry/build/CMakeFiles/rebuild_cache.dir
-/home/yza476/Downloads/simple_visual_odometry/build/CMakeFiles/klt.dir
+/home/nvidia/CMPT742/SimpleVisualOdometry/simple_visual_odometry/build/CMakeFiles/klt.dir
+/home/nvidia/CMPT742/SimpleVisualOdometry/simple_visual_odometry/build/CMakeFiles/edit_cache.dir
+/home/nvidia/CMPT742/SimpleVisualOdometry/simple_visual_odometry/build/CMakeFiles/featuredetector.dir
+/home/nvidia/CMPT742/SimpleVisualOdometry/simple_visual_odometry/build/CMakeFiles/vo_offline.dir
+/home/nvidia/CMPT742/SimpleVisualOdometry/simple_visual_odometry/build/CMakeFiles/five_points_test.dir
+/home/nvidia/CMPT742/SimpleVisualOdometry/simple_visual_odometry/build/CMakeFiles/rebuild_cache.dir
+/home/nvidia/CMPT742/SimpleVisualOdometry/simple_visual_odometry/build/CMakeFiles/test_Essential.dir
+/home/nvidia/CMPT742/SimpleVisualOdometry/simple_visual_odometry/build/CMakeFiles/pnp_test.dir
