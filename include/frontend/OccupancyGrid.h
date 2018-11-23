@@ -25,8 +25,8 @@ public:
 
 private:
 	// number of cells
-	static const size_t nx = 32;
-	static const size_t ny = 20;
+	static const size_t nx = 20;
+	static const size_t ny = 15;
 
 	// Data needed by the algorithm
 	bool isFree[nx][ny];

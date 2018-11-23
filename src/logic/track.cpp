@@ -119,9 +119,6 @@ void VisualFrontend::track(Mat& im_gray, Features2D& trackedPoints)
 
 }
 
-
-
-
 void OccupancyGrid::initializer()
 {
     Iy = 1;
@@ -175,13 +172,16 @@ void OccupancyGrid::resetGrid()
             isFree[i][j] = true;
 }
 
+
+
+
 void BackendSFM::tracking(Features2D& trackedFeatures, Features2D& newFeatures)
 {
 //Compute motion
 	Features2D features2D;
 	Features3D features3D;
 
-	getCorrespondences(trackedFeatures, features2D, features3D);
+	getCorrespondences(trackedFeatures, features2D, features3D);// fill the blank;
 
 	Eigen::Affine3d T_CW = T_WC.inverse();
 	cv::Mat rvec = rodriguesFromPose(T_CW);

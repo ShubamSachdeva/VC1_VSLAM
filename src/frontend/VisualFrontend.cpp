@@ -42,7 +42,8 @@ void VisualFrontend::trackAndExtract(cv::Mat& im_gray, Features2D& trackedPoints
 	{
         //Track prevoius points with optical flow
 		auto festart = chrono::steady_clock::now();
-		track(im_gray, trackedPoints);
+		
+		track1(im_gray, trackedPoints);
 		auto feend = chrono::steady_clock::now();
 		cout << "klt running time: "<< chrono::duration <double, milli> (feend-festart).count() << " ms" << endl;
 
@@ -50,10 +51,10 @@ void VisualFrontend::trackAndExtract(cv::Mat& im_gray, Features2D& trackedPoints
 		//Save tracked points
 		oldPoints = trackedPoints;
 	}
-
+	
 	//Extract new points
 	auto festart = chrono::steady_clock::now();
-	extract(im_gray, newPoints);
+	extract1(im_gray, newPoints);
 	auto feend = chrono::steady_clock::now();
 	cout << "new feature time: "<< chrono::duration <double, milli> (feend-festart).count() << " ms" << endl;
 
@@ -64,10 +65,63 @@ void VisualFrontend::trackAndExtract(cv::Mat& im_gray, Features2D& trackedPoints
 
 void VisualFrontend::extract1(Mat& im_gray, Features2D& newPoints)
 {
-    // fill the blank
+	GpuMat img(im_gray);
+	GpuMat new_points;
+	gpu_detector(img, new_points);
+	vector<Point2f> new_points_v;
+
+	downloadpts(new_points, new_points_v);
+	grid.setImageSize1(im_gray.cols, im_gray.rows);
+	
+	for(auto points: new_points_v)
+	{
+		if(grid.isNewFeature1(points))
+		{
+			newPoints.addPoint(points, newId);
+			oldPoints.addPoint(points, newId);
+			newId++;
+		}
+			
+	}
+	grid.resetGrid1();
+	
 }
 
 void VisualFrontend::track1(Mat& im_gray, Features2D& trackedPoints)
 {
     // fill the blank
+	GpuMat img1(im_prev);
+	GpuMat img2(im_gray);
+	auto points = oldPoints.getPoints();
+	Mat previous_points = Mat(1,points.size(), CV_32FC2, points.data()).clone();
+	GpuMat previous_points_g(previous_points);
+	GpuMat next_points_g;
+	GpuMat status_g, status1_g;
+	GpuMat previous_points_bk_g;
+	
+	d_pyrLK.sparse(img1, img2, previous_points_g, next_points_g, status_g);
+	d_pyrLK.sparse(img2, img1, next_points_g, previous_points_bk_g, status1_g);
+	
+ 	vector<Point2f> points_bk, next_points;
+    	downloadpts(previous_points_bk_g, points_bk);
+	downloadpts(next_points_g, next_points);
+
+	vector<uchar> status, status1;
+	downloadmask(status_g, status);
+	downloadmask(status1_g, status1);
+	
+	 for (size_t i = 0; i < status.size(); i++)
+        	status[i] = ((norm(points_bk[i] - points[i]) <= thresholdFBError) && status[i] && status1[i]);
+	
+    	trackedPoints = Features2D(oldPoints, next_points, status);
+	for (Point2f& point : trackedPoints)
+	{
+				
+		grid.addPoint1(point);
+	}
+
+	
+	
+	
+
 }
