@@ -93,6 +93,7 @@ using namespace std;
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/features2d/features2d.hpp>
 #include <opencv2/video/tracking.hpp>
+#include <opencv2/calib3d/calib3d.hpp>
 
 using namespace cv;
 
@@ -106,6 +107,7 @@ bool checkinlier(cv::Point2f prev_keypoint,cv::Point2f next_keypoint,cv::Matx33d
     //cout<<"after in Matx"<<X1<<endl;
     auto epipolar_line = Fcandidate.t()*X1;
     //cout<<"value of epipolar line"<<epipolar_line<<endl;
+    //cout<<"epipolar line "<<epipolar_line<<endl;
     float a = epipolar_line(0,0);
     float b = epipolar_line(1,0);
     float c = epipolar_line(2,0);
@@ -180,15 +182,15 @@ cv::Matx33d Findfundamental(vector<cv::Point2f> prev_subset,vector<cv::Point2f> 
   
     cv::Mat f_test(3,3, CV_64FC1);
     //cout<<"f_test size"<<svd.vt.rows<<endl;
-    f_test.at<double>(0,0)=svd.vt.at<double>(7,0);
-    f_test.at<double>(0,1)=svd.vt.at<double>(7,1);
-    f_test.at<double>(0,2)=svd.vt.at<double>(7,2);
-    f_test.at<double>(1,0)=svd.vt.at<double>(7,3);
-    f_test.at<double>(1,1)=svd.vt.at<double>(7,4);
-    f_test.at<double>(1,2)=svd.vt.at<double>(7,5);
-    f_test.at<double>(2,0)=svd.vt.at<double>(7,6);
-    f_test.at<double>(2,1)=svd.vt.at<double>(7,7);
-    f_test.at<double>(2,2)=svd.vt.at<double>(7,8);
+    f_test.at<double>(0,0)=svd.vt.at<double>(svd.vt.rows-1,0);
+    f_test.at<double>(0,1)=svd.vt.at<double>(svd.vt.rows-1,1);
+    f_test.at<double>(0,2)=svd.vt.at<double>(svd.vt.rows-1,2);
+    f_test.at<double>(1,0)=svd.vt.at<double>(svd.vt.rows-1,3);
+    f_test.at<double>(1,1)=svd.vt.at<double>(svd.vt.rows-1,4);
+    f_test.at<double>(1,2)=svd.vt.at<double>(svd.vt.rows-1,5);
+    f_test.at<double>(2,0)=svd.vt.at<double>(svd.vt.rows-1,6);
+    f_test.at<double>(2,1)=svd.vt.at<double>(svd.vt.rows-1,7);
+    f_test.at<double>(2,2)=svd.vt.at<double>(svd.vt.rows-1,8);
     
     //cout<<X2*f_test*X1<<endl;
     //cout<<"f_test matrix"<<f_test<<"============"<<endl;
@@ -258,6 +260,19 @@ void vizEpipolarConstrain(Mat img_1, Mat img_2, vector<cv::Point2f> prev_keypoin
    cv::imshow("klt tracker", img_1);
    cv::waitKey(0);
 
+}
+
+void findPose(const Matx33d &E, Matx34d &P1, Matx34d &P2, Matx34d &P3, Matx34d &P4)
+{
+    Matx33d W(0.0, -1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0);
+    Matx33d Z(0.0, 1.0, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+    SVD svd(E);
+    // auto S1 = -svd.u * Mat(Z) * svd.u.t();
+    auto R1 = svd.u * Mat(W).t() * svd.vt;
+    auto R2 = svd.u * Mat(W) * svd.vt;
+
+
+    
 }
 
 int main( int argc, char** argv )
@@ -337,7 +352,7 @@ int main( int argc, char** argv )
         for(size_t j = 0;j<rand_util.size();j++){
             prev_subset.push_back(kps_prev[random_indices[j]]);
             next_subset.push_back(kps_next[random_indices[j]]);
-        }
+        }    
         // step2: perform 8pt algorithm, get candidate F
         Fcandidate = Findfundamental(prev_subset,next_subset);
         // step3: Evaluate inliers, decide if we need to update the best solution
@@ -366,9 +381,36 @@ int main( int argc, char** argv )
 
     }
     F = Findfundamental(prev_subset,next_subset);
+    // Mat F2 = findFundamentalMat(next_subset, prev_subset, FM_RANSAC, 1.5f, 0.99);
 
-    cout<<"Fundamental matrix is \n"<<F<<endl;
+    // cout<<"Fundamental matrix is \n"<<F<<endl;
+    // cout<<"Fundamental matrix from cv is \n"<<F2<<endl;
+    //vizEpipolarConstrain(img_1, img_2, prev_subset, next_subset, F);
 
-    vizEpipolarConstrain(img_1, img_2, kps_prev, kps_next, F);
+    FileStorage fs("../config/default.yaml", FileStorage::READ);
+    // string aaa = fs["dataset_dir"];
+    // fs.release();
+    double fx = fs["camera.fx"];
+    double fy = fs["camera.fy"];
+    double cx = fs["camera.cx"];
+    double cy = fs["camera.cy"];
+    Matx33d K(fx, 0.0, cx, 0.0, fy, cy, 0.0, 0.0, 1.0);
+    Matx33d E = K.t() * F * K;
+    Matx34d P1, P2, P3, P4;
+    findPose(E, P1, P2, P3, P4);
+
+    cout<<"Fundamental matrix\n"<<K<<endl;
+    cout<<"Essential matrix"<<E<<endl;
+
+    //Matx33d W(0, -1.0, 0, 1.0, 0, 0, 0, 0, 1.0);
+
+
+
+
+
+    
+
+    
+    
     return 0;
 }
