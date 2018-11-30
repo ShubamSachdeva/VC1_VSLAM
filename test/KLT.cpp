@@ -94,7 +94,6 @@ using namespace std;
 #include <opencv2/features2d/features2d.hpp>
 #include <opencv2/video/tracking.hpp>
 #include <opencv2/calib3d/calib3d.hpp>
-
 using namespace cv;
 
 bool checkinlier(cv::Point2f prev_keypoint,cv::Point2f next_keypoint,cv::Matx33d Fcandidate,double d){
@@ -143,7 +142,7 @@ cv::Matx33d Findfundamental(vector<cv::Point2f> prev_subset,vector<cv::Point2f> 
     //cout<<"prev_sub "<<prev_subset.size()<<endl;
     //cout<<"next_subset "<<next_subset.size()<<endl;
 
-    for (int i=0; i<prev_subset.size(); i++)
+    for (size_t i=0; i<prev_subset.size(); i++)
     {
         
         X1T.at<double>(0,0)=prev_subset[i].x;
@@ -220,7 +219,7 @@ void vizEpipolarConstrain(Mat img_1, Mat img_2, vector<cv::Point2f> prev_keypoin
 {
    // visualize all  keypoints
    hconcat(img_2,img_1,img_1);
-   for ( int i=0; i< prev_keypoints.size() ;i++)
+   for ( size_t i=0; i< prev_keypoints.size() ;i++)
    {
            Matx31d X1;
             X1(0,0)=prev_keypoints[i].x;
@@ -262,17 +261,133 @@ void vizEpipolarConstrain(Mat img_1, Mat img_2, vector<cv::Point2f> prev_keypoin
 
 }
 
-void findPose(const Matx33d &E, Matx34d &P1, Matx34d &P2, Matx34d &P3, Matx34d &P4)
+void findPose(const Matx33d &E, Matx44d &P1, Matx44d &P2, Matx44d &P3, Matx44d &P4)
 {
     Matx33d W(0.0, -1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0);
     Matx33d Z(0.0, 1.0, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0, 0.0);
     SVD svd(E);
     // auto S1 = -svd.u * Mat(Z) * svd.u.t();
-    auto R1 = svd.u * Mat(W).t() * svd.vt;
-    auto R2 = svd.u * Mat(W) * svd.vt;
+    Mat R1 = svd.u * Mat(W).t() * svd.vt;
+    if(cv::determinant(R1)<0)
+        R1=-R1;
 
+    Mat R2 = svd.u * Mat(W) * svd.vt;
+    if(cv::determinant(R2)<0)
+        R2=-R2;
 
-    
+    double scal = (svd.w.at<double>(0,0)+svd.w.at<double>(1,0))/2; 
+    cout<<"svd(E) w"<<svd.w<<endl;
+    cout<<"scalar "<<scal<<endl;
+    Mat S = svd.u * Mat(Z) * svd.u.t();
+    cout<<"S "<<S<<endl;
+    S = S * scal;
+    cout<<"S "<<S<<endl;
+
+    SVD svd_S(S);
+    cout<<"svd_S.vt "<<svd_S.vt<<endl;
+    Mat u3(3, 1, CV_64FC1);
+    u3.at<double>(0,0) = svd_S.vt.at<double>(2,0);
+    u3.at<double>(1,0) = svd_S.vt.at<double>(2,1);
+    u3.at<double>(2,0) = svd_S.vt.at<double>(2,2);
+    //P1=====
+    for (int i=0; i<3; i++)
+    {
+        for(int j = 0; j<3; j++)
+            P1(i,j) = R2.at<double>(i,j);
+        P1(i,3) = u3.at<double>(i,0);
+    } 
+    P1(3,0)=0.0;
+    P1(3,1)=0.0;
+    P1(3,2)=0.0;
+    P1(3,3)=1.0;
+
+    //P2========
+    for (int i=0; i<3; i++)
+    {
+        for(int j = 0; j<3; j++)
+            P2(i,j) = R1.at<double>(i,j);
+        P2(i,3) = u3.at<double>(i,0);
+    } 
+    P2(3,0)=0.0;
+    P2(3,1)=0.0;
+    P2(3,2)=0.0;
+    P2(3,3)=1.0;
+
+    //P3========
+    for (int i=0; i<3; i++)
+    {
+        for(int j = 0; j<3; j++)
+            P3(i,j) = R2.at<double>(i,j);
+        P3(i,3) = -u3.at<double>(i,0);
+    }
+    P3(3,0)=0.0;
+    P3(3,1)=0.0;
+    P3(3,2)=0.0;
+    P3(3,3)=1.0;
+
+    //P4========
+    for (int i=0; i<3; i++)
+    {
+        for(int j = 0; j<3; j++)
+            P4(i,j) = R1.at<double>(i,j);
+        P4(i,3) = -u3.at<double>(i,0);
+    }
+    P4(3,0)=0.0;
+    P4(3,1)=0.0;
+    P4(3,2)=0.0;
+    P4(3,3)=1.0;
+    cout<<"P1 is "<<P1<<endl;
+    cout<<"P2 is "<<P2<<endl;
+    cout<<"P3 is "<<P3<<endl;
+    cout<<"P4 is "<<P4<<endl;
+    cout<<"-u3 "<<-u3<<endl;
+   
+}
+
+int find3DX(Matx44d P, vector<cv::Point2f> prev_point, vector<cv::Point2f> next_point , Matx33d K)
+{
+    Matx34d Proj(1, 0, 0, 0, 0 ,1, 0, 0, 0, 0, 1, 0);
+    Matx44d R(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+    Matx44d Translation(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+    Matx34d P1 = K*Proj*R*Translation;
+    //cout<<"P1 "<<P1<<endl;
+    int count=0;
+    // cout<<"prev_point.x "<<prev_point.x<<endl;
+    // cout<<"original P1.row(2) "<<P1.row(2)<<endl;
+    // cout<<"P1.row(2) "<<prev_point.x*P1.row(2)<<endl;
+    // cout<<"P1.row(0) "<<P1.row(0)<<endl;
+
+    // cout<<"aaaaaaaaaaa"<<Mat(prev_point.x*P1.row(2) - P1.row(0))<<endl;
+    for(size_t i=0; i<prev_point.size(); i++)
+    {
+        Mat A(4,4,CV_64FC1) ;
+        A.row(0) = prev_point[i].x*Mat(P1.row(2)) - Mat(P1.row(0));
+        A.row(1) = prev_point[i].y*Mat(P1.row(2)) - Mat(P1.row(1));
+        A.row(2) = next_point[i].x*Mat((K*Proj*P).row(2)) - Mat((K*Proj*P).row(0));
+        A.row(3) = next_point[i].y*Mat((K*Proj*P).row(2)) - Mat((K*Proj*P).row(1));
+
+        SVD svd(A);
+
+        //cout<<svd.vt<<endl;
+        //cout<<"check whether minus "<< svd.vt.at<double>(3,2)/svd.vt.at<double>(3,3)<<endl;
+        //cout<<"P1 "<<P1<<endl;
+
+        //cout<<"A "<<A<<endl;
+        double a = svd.vt.at<double>(3,0);
+        double b = svd.vt.at<double>(3,1);
+        double c = svd.vt.at<double>(3,2);
+        double d = svd.vt.at<double>(3,3);
+
+        Matx41d x_w(a, b, c, d);
+        Matx41d x_c = P * x_w;
+        //cout<<"Xc is "<<x_c<<endl;
+        if((c/d)>0 && (x_c(0,2)/x_c(0,3))>0)
+        {
+            count++;
+        }
+
+        }
+    return count;
 }
 
 int main( int argc, char** argv )
@@ -295,7 +410,6 @@ int main( int argc, char** argv )
     std::string detectorType = "Feature2D.BRISK";
     Ptr<FeatureDetector>detector = Algorithm::create<FeatureDetector>(detectorType);
     detector->set("thres", 100);
-
 
     detector->detect( img_1, kps );
     for ( auto kp:kps )
@@ -324,6 +438,8 @@ int main( int argc, char** argv )
             kps_next.push_back(next_keypoints[i]);
         }
     }
+
+
     // p Probability that at least one valid set of inliers is chosen
     // d Tolerated distance from the model for inliers
     // e Assumed outlier percent in data set.
@@ -340,7 +456,7 @@ int main( int argc, char** argv )
     prev_subset.clear();
     next_subset.clear();
 
-    for(int i=0;i<niter-1;i++){
+for(int i=0;i<niter;i++){
         // step1: randomly sample 8 matches for 8pt algorithm
         unordered_set<int> rand_util;
         while(rand_util.size()<8)
@@ -352,7 +468,7 @@ int main( int argc, char** argv )
         for(size_t j = 0;j<rand_util.size();j++){
             prev_subset.push_back(kps_prev[random_indices[j]]);
             next_subset.push_back(kps_next[random_indices[j]]);
-        }    
+        }   
         // step2: perform 8pt algorithm, get candidate F
         Fcandidate = Findfundamental(prev_subset,next_subset);
         // step3: Evaluate inliers, decide if we need to update the best solution
@@ -381,11 +497,27 @@ int main( int argc, char** argv )
 
     }
     F = Findfundamental(prev_subset,next_subset);
-    // Mat F2 = findFundamentalMat(next_subset, prev_subset, FM_RANSAC, 1.5f, 0.99);
+    
 
     // cout<<"Fundamental matrix is \n"<<F<<endl;
     // cout<<"Fundamental matrix from cv is \n"<<F2<<endl;
     //vizEpipolarConstrain(img_1, img_2, prev_subset, next_subset, F);
+    
+    //test embended F================
+    Matx33d F2 = findFundamentalMat(kps_prev, kps_next, FM_RANSAC, 1.5f, 0.99);
+    // prev_subset.clear();
+    // next_subset.clear();
+    // for(size_t j=0;j<kps_prev.size();j++){
+    //     if(checkinlier(kps_prev[j],kps_next[j],F2,d))
+    //     {
+    //         prev_subset.push_back(kps_prev[j]);
+    //         next_subset.push_back(kps_next[j]);
+    //     }
+
+    // }
+    // vizEpipolarConstrain(img_1, img_2, kps_prev, kps_next, F2);
+    //end testing===============
+
 
     FileStorage fs("../config/default.yaml", FileStorage::READ);
     // string aaa = fs["dataset_dir"];
@@ -395,22 +527,24 @@ int main( int argc, char** argv )
     double cx = fs["camera.cx"];
     double cy = fs["camera.cy"];
     Matx33d K(fx, 0.0, cx, 0.0, fy, cy, 0.0, 0.0, 1.0);
-    Matx33d E = K.t() * F * K;
-    Matx34d P1, P2, P3, P4;
+    Matx33d E = K.t() * F2 * K;
+    Matx44d P1, P2, P3, P4;
     findPose(E, P1, P2, P3, P4);
+    
+    cout<<"P1 "<<P1<<endl;
+    cout<<"P2 "<<P2<<endl;
+    cout<<"P3 "<<P3<<endl;
+    cout<<"P4 "<<P4<<endl;
+
+
+    cout<<find3DX(P1, prev_subset, next_subset, K)<<endl;
+    cout<<find3DX(P2, prev_subset, next_subset, K)<<endl;
+    cout<<find3DX(P3, prev_subset, next_subset, K)<<endl;
+    cout<<find3DX(P4, prev_subset, next_subset, K)<<endl;
 
     cout<<"Fundamental matrix\n"<<K<<endl;
     cout<<"Essential matrix"<<E<<endl;
-
     //Matx33d W(0, -1.0, 0, 1.0, 0, 0, 0, 0, 1.0);
-
-
-
-
-
-    
-
-    
     
     return 0;
 }
