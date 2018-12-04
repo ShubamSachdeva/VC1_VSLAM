@@ -94,14 +94,17 @@ using namespace std;
 #include <opencv2/features2d/features2d.hpp>
 #include <opencv2/video/tracking.hpp>
 #include <opencv2/calib3d/calib3d.hpp>
+// #include <opencv2/calib3d/>
+//#include </home/yza476/Downloads/VC1_VSLAM/five-point-nister/five-point.hpp>
+// #include <mexopencv.hpp>
 using namespace cv;
 
 bool checkinlier(cv::Point2f prev_keypoint,cv::Point2f next_keypoint,cv::Matx33d Fcandidate,double d){
     //fill the blank
     Matx31d X1;
     //cout<<"original"<<next_keypoint;
-    X1(0,0)=prev_keypoint.x;
-    X1(0,1)=prev_keypoint.y;
+    X1(0,0)=next_keypoint.x;
+    X1(0,1)=next_keypoint.y;
     X1(0,2)=1.0;
     //cout<<"after in Matx"<<X1<<endl;
     auto epipolar_line = Fcandidate.t()*X1;
@@ -110,8 +113,8 @@ bool checkinlier(cv::Point2f prev_keypoint,cv::Point2f next_keypoint,cv::Matx33d
     float a = epipolar_line(0,0);
     float b = epipolar_line(1,0);
     float c = epipolar_line(2,0);
-    float u = next_keypoint.x;
-    float v = next_keypoint.y;
+    float u = prev_keypoint.x;
+    float v = prev_keypoint.y;
     float dist = abs(a*u+b*v+c)/sqrt(a*a+b*b);
     
     if(dist<=d)
@@ -126,7 +129,7 @@ bool checkinlier(cv::Point2f prev_keypoint,cv::Point2f next_keypoint,cv::Matx33d
 cv::Matx33d Findfundamental(vector<cv::Point2f> prev_subset,vector<cv::Point2f> next_subset){
     Matx33d F;
     Mat A(prev_subset.size(), 9, CV_64FC1);
-    Mat X1T(1, 3, CV_64FC1);
+    Mat X1(3, 1, CV_64FC1);
     Mat X2(3, 1, CV_64FC1);
 
     Mat N(3,3, CV_64FC1); //Normalization matrix
@@ -145,19 +148,19 @@ cv::Matx33d Findfundamental(vector<cv::Point2f> prev_subset,vector<cv::Point2f> 
     for (size_t i=0; i<prev_subset.size(); i++)
     {
         
-        X1T.at<double>(0,0)=prev_subset[i].x;
-        X1T.at<double>(0,1)=prev_subset[i].y;
-        X1T.at<double>(0,2)=1.0;
-        X1T = (N * X1T.t()).t();
+        X1.at<double>(0,0)=next_subset[i].x;
+        X1.at<double>(1,0)=next_subset[i].y;
+        X1.at<double>(2,0)=1.0;
+        X1 = N * X1;
         //cout<<i<<"th"<<" X1T "<<X1T<<endl;
-        X2.at<double>(0,0)=next_subset[i].x;
-        X2.at<double>(1,0)=next_subset[i].y;
+        X2.at<double>(0,0)=prev_subset[i].x;
+        X2.at<double>(1,0)=prev_subset[i].y;
         X2.at<double>(2,0)=1.0;
 
-        X2 = N*X2;
+        X2 = N * X2;
         //cout<<i<<"th"<<" X2 "<<X2<<endl;
 
-        Mat temp = X1T.t()*X2.t();
+        Mat temp = X1 * X2.t();
         Mat temp2(1, 9, CV_64FC1);
         A.at<double>(i,0)=temp.at<double>(0,0);
         A.at<double>(i,1)=temp.at<double>(0,1);
@@ -218,12 +221,12 @@ cv::Matx33d Findfundamental(vector<cv::Point2f> prev_subset,vector<cv::Point2f> 
 void vizEpipolarConstrain(Mat img_1, Mat img_2, vector<cv::Point2f> prev_keypoints,vector<cv::Point2f> next_keypoints, Matx33d f)
 {
    // visualize all  keypoints
-   hconcat(img_2,img_1,img_1);
+   hconcat(img_1,img_2,img_1);
    for ( size_t i=0; i< prev_keypoints.size() ;i++)
    {
            Matx31d X1;
-            X1(0,0)=prev_keypoints[i].x;
-            X1(0,1)=prev_keypoints[i].y;
+            X1(0,0)=next_keypoints[i].x;
+            X1(0,1)=next_keypoints[i].y;
             X1(0,2)=1.0;
             auto epipolar_line = f.t()*X1;
             double a = epipolar_line(0,0);
@@ -235,11 +238,11 @@ void vizEpipolarConstrain(Mat img_1, Mat img_2, vector<cv::Point2f> prev_keypoin
             pt2.x = img_2.size[1]+img_2.size[1];
             pt2.y = -(c+a*img_2.size[1])/b;
             line(img_1, pt1, pt2, cv::Scalar(0,255,255));
-            circle(img_1, Point(prev_keypoints[i].x+img_2.size[1], prev_keypoints[i].y), 4, cv::Scalar(0,255,160),CV_FILLED);
+            circle(img_1, Point(prev_keypoints[i].x+img_2.size[1], prev_keypoints[i].y), 4, cv::Scalar(0,100,250),CV_FILLED);
 
             Matx31d X2;
-            X2(0,0)=next_keypoints[i].x;
-            X2(0,1)=next_keypoints[i].y;
+            X2(0,0)=prev_keypoints[i].x;
+            X2(0,1)=prev_keypoints[i].y;
             X2(0,2)=1.0;
             epipolar_line = f*X2;
             a = epipolar_line(0,0);
@@ -252,7 +255,7 @@ void vizEpipolarConstrain(Mat img_1, Mat img_2, vector<cv::Point2f> prev_keypoin
             pt4.y = -(c+a*img_2.size[1])/b;
 
            line(img_1, pt3, pt4, cv::Scalar(160,0,255));
-           circle(img_1, next_keypoints[i], 4, cv::Scalar(255,0,160),CV_FILLED);
+           circle(img_1, next_keypoints[i], 4, cv::Scalar(178,0,100),CV_FILLED);
        
    }
 
@@ -265,36 +268,47 @@ void findPose(const Matx33d &E, Matx44d &P1, Matx44d &P2, Matx44d &P3, Matx44d &
 {
     Matx33d W(0.0, -1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0);
     Matx33d Z(0.0, 1.0, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+    cout<<"E thi is testing"<<E<<endl;
     SVD svd(E);
     // auto S1 = -svd.u * Mat(Z) * svd.u.t();
     Mat R1 = svd.u * Mat(W).t() * svd.vt;
     if(cv::determinant(R1)<0)
         R1=-R1;
 
-    Mat R2 = svd.u * Mat(W) * svd.vt;
+     Mat R2 = svd.u * Mat(W) * svd.vt;
     if(cv::determinant(R2)<0)
         R2=-R2;
 
     double scal = (svd.w.at<double>(0,0)+svd.w.at<double>(1,0))/2; 
     cout<<"svd(E) w"<<svd.w<<endl;
     cout<<"scalar "<<scal<<endl;
-    Mat S = svd.u * Mat(Z) * svd.u.t();
-    cout<<"S "<<S<<endl;
-    S = S * scal;
-    cout<<"S "<<S<<endl;
+    Mat S1 = -svd.u * Mat(Z) * svd.u.t();
+    Mat S2 = svd.u * Mat(Z) * svd.u.t();
+    //cout<<"S "<<S<<endl;
+    S1 = scal*S1;
+    S2 = scal*S2;
+    cout<<"S1 "<<S1<<endl;
+    cout<<"S2 "<<S2<<endl;
 
-    SVD svd_S(S);
-    cout<<"svd_S.vt "<<svd_S.vt<<endl;
-    Mat u3(3, 1, CV_64FC1);
-    u3.at<double>(0,0) = svd_S.vt.at<double>(2,0);
-    u3.at<double>(1,0) = svd_S.vt.at<double>(2,1);
-    u3.at<double>(2,0) = svd_S.vt.at<double>(2,2);
+    SVD svd_S1(S1);
+    cout<<"svd_S1.vt "<<svd_S1.vt<<endl;
+    Mat u3_1(3, 1, CV_64FC1);
+    u3_1.at<double>(0,0) = svd_S1.vt.at<double>(2,0);
+    u3_1.at<double>(1,0) = svd_S1.vt.at<double>(2,1);
+    u3_1.at<double>(2,0) = svd_S1.vt.at<double>(2,2);
+
+    SVD svd_S2(S2);
+    cout<<"svd_S2.vt "<<svd_S2.vt<<endl;
+    Mat u3_2(3, 1, CV_64FC1);
+    u3_2.at<double>(0,0) = svd_S2.vt.at<double>(2,0);
+    u3_2.at<double>(1,0) = svd_S2.vt.at<double>(2,1);
+    u3_2.at<double>(2,0) = svd_S2.vt.at<double>(2,2);
     //P1=====
     for (int i=0; i<3; i++)
     {
         for(int j = 0; j<3; j++)
             P1(i,j) = R2.at<double>(i,j);
-        P1(i,3) = u3.at<double>(i,0);
+        P1(i,3) = u3_2.at<double>(i,0);
     } 
     P1(3,0)=0.0;
     P1(3,1)=0.0;
@@ -306,7 +320,7 @@ void findPose(const Matx33d &E, Matx44d &P1, Matx44d &P2, Matx44d &P3, Matx44d &
     {
         for(int j = 0; j<3; j++)
             P2(i,j) = R1.at<double>(i,j);
-        P2(i,3) = u3.at<double>(i,0);
+        P2(i,3) = u3_1.at<double>(i,0);
     } 
     P2(3,0)=0.0;
     P2(3,1)=0.0;
@@ -318,7 +332,7 @@ void findPose(const Matx33d &E, Matx44d &P1, Matx44d &P2, Matx44d &P3, Matx44d &
     {
         for(int j = 0; j<3; j++)
             P3(i,j) = R2.at<double>(i,j);
-        P3(i,3) = -u3.at<double>(i,0);
+        P3(i,3) = -u3_2.at<double>(i,0);
     }
     P3(3,0)=0.0;
     P3(3,1)=0.0;
@@ -330,17 +344,17 @@ void findPose(const Matx33d &E, Matx44d &P1, Matx44d &P2, Matx44d &P3, Matx44d &
     {
         for(int j = 0; j<3; j++)
             P4(i,j) = R1.at<double>(i,j);
-        P4(i,3) = -u3.at<double>(i,0);
+        P4(i,3) = -u3_1.at<double>(i,0);
     }
     P4(3,0)=0.0;
     P4(3,1)=0.0;
     P4(3,2)=0.0;
     P4(3,3)=1.0;
-    cout<<"P1 is "<<P1<<endl;
-    cout<<"P2 is "<<P2<<endl;
-    cout<<"P3 is "<<P3<<endl;
-    cout<<"P4 is "<<P4<<endl;
-    cout<<"-u3 "<<-u3<<endl;
+    // cout<<"P1 is "<<P1<<endl;
+    // cout<<"P2 is "<<P2<<endl;
+    // cout<<"P3 is "<<P3<<endl;
+    // cout<<"P4 is "<<P4<<endl;
+    // cout<<"-u3 "<<-u3<<endl;
    
 }
 
@@ -350,7 +364,7 @@ int find3DX(Matx44d P, vector<cv::Point2f> prev_point, vector<cv::Point2f> next_
     Matx44d R(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
     Matx44d Translation(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
     Matx34d P1 = K*Proj*R*Translation;
-    //cout<<"P1 "<<P1<<endl;
+    //cout<<"P1 !!!!!"<<P1<<endl;
     int count=0;
     // cout<<"prev_point.x "<<prev_point.x<<endl;
     // cout<<"original P1.row(2) "<<P1.row(2)<<endl;
@@ -358,6 +372,7 @@ int find3DX(Matx44d P, vector<cv::Point2f> prev_point, vector<cv::Point2f> next_
     // cout<<"P1.row(0) "<<P1.row(0)<<endl;
 
     // cout<<"aaaaaaaaaaa"<<Mat(prev_point.x*P1.row(2) - P1.row(0))<<endl;
+    //cout<<"P"<<K*Proj*P<<endl;
     for(size_t i=0; i<prev_point.size(); i++)
     {
         Mat A(4,4,CV_64FC1) ;
@@ -504,7 +519,7 @@ for(int i=0;i<niter;i++){
     //vizEpipolarConstrain(img_1, img_2, prev_subset, next_subset, F);
     
     //test embended F================
-    Matx33d F2 = findFundamentalMat(kps_prev, kps_next, FM_RANSAC, 1.5f, 0.99);
+    //Matx33d F2 = findFundamentalMat(kps_prev, kps_next, FM_RANSAC, 1.5f, 0.99);
     // prev_subset.clear();
     // next_subset.clear();
     // for(size_t j=0;j<kps_prev.size();j++){
@@ -515,7 +530,7 @@ for(int i=0;i<niter;i++){
     //     }
 
     // }
-    // vizEpipolarConstrain(img_1, img_2, kps_prev, kps_next, F2);
+    vizEpipolarConstrain(img_1, img_2, prev_subset, next_subset, F);
     //end testing===============
 
 
@@ -527,7 +542,7 @@ for(int i=0;i<niter;i++){
     double cx = fs["camera.cx"];
     double cy = fs["camera.cy"];
     Matx33d K(fx, 0.0, cx, 0.0, fy, cy, 0.0, 0.0, 1.0);
-    Matx33d E = K.t() * F2 * K;
+    Matx33d E = K.t() * F * K;
     Matx44d P1, P2, P3, P4;
     findPose(E, P1, P2, P3, P4);
     
@@ -535,6 +550,10 @@ for(int i=0;i<niter;i++){
     cout<<"P2 "<<P2<<endl;
     cout<<"P3 "<<P3<<endl;
     cout<<"P4 "<<P4<<endl;
+
+    // cv::Mat R;
+	// cv::Mat t;
+	// recoverPose((Mat)F2, prev_subset, next_subset, K, R, t);
 
 
     cout<<find3DX(P1, prev_subset, next_subset, K)<<endl;
@@ -545,6 +564,92 @@ for(int i=0;i<niter;i++){
     cout<<"Fundamental matrix\n"<<K<<endl;
     cout<<"Essential matrix"<<E<<endl;
     //Matx33d W(0, -1.0, 0, 1.0, 0, 0, 0, 0, 1.0);
+
+    //-------------------start testing
+    //Create a random 3D scene
+	cv::Mat points3D(1, 16, CV_64FC4);
+	cv::randu(points3D, cv::Scalar(-5.0, -5.0, 1.0, 1.0), cv::Scalar(5.0, 5.0, 10.0, 1.0 ));
+
+
+	//Compute 2 camera matrices
+	cv::Matx34d C1 = cv::Matx34d::eye();
+	cv::Matx34d C2 = cv::Matx34d::eye();
+	cv::Matx33d K_ideal= cv::Matx33d::eye();
+    double theta = M_PI/3;
+    C2(0,0) = cos(theta);
+    C2(0,1) = -sin(theta);
+    C2(1,0) = sin(theta);
+    C2(1,1) = cos(theta);
+	C2(0, 3) = 1.0;
+
+	//Compute points projection
+	std::vector<cv::Point2f> points1;
+	std::vector<cv::Point2f> points2;
+
+	for(size_t i = 0; i < points3D.cols; i++)
+	{
+		cv::Vec3d hpt1 = C1*points3D.at<cv::Vec4d>(0, i);
+		cv::Vec3d hpt2 = C2*points3D.at<cv::Vec4d>(0, i);
+
+		hpt1 /= hpt1[2];
+		hpt2 /= hpt2[2];
+
+		cv::Point2f p1(hpt1[0], hpt1[1]);
+		cv::Point2f p2(hpt2[0], hpt2[1]);
+
+		points1.push_back(p1);
+		points2.push_back(p2);
+	}
+
+
+	//Print
+	std::cout <<"C1"<< C1 << std::endl;
+	std::cout <<"C2"<< C2 << std::endl;
+    std::cout <<"K"<< K_ideal << std::endl;
+	std::cout <<"points3D"<< points3D << std::endl;
+    cv::Matx33d F_test = Findfundamental(points1,points2);
+    Matx33d E_test = K_ideal.t() * F_test * K_ideal;
+
+    // cv::Matx33d F_test_cv = findFundamentalMat(points1, points2, FM_RANSAC, 1.5f, 0.99);
+    // Matx33d E_test = K_ideal.t() * F_test_cv * K_ideal;
+
+    Matx44d P1_test, P2_test, P3_test, P4_test;
+    findPose(E_test, P1_test, P2_test, P3_test, P4_test);
+    cout<<"P1_test"<<P1_test<<endl;
+    cout<<"P2_test"<<P2_test<<endl;
+    cout<<"P3_test"<<P3_test<<endl;
+    cout<<"P4_test"<<P4_test<<endl;
+    cout<<find3DX(P1_test, points1, points2, K_ideal)<<endl;
+    cout<<find3DX(P2_test, points1, points2, K_ideal)<<endl;
+    cout<<find3DX(P3_test, points1, points2, K_ideal)<<endl;
+    cout<<find3DX(P4_test, points1, points2, K_ideal)<<endl;
+
+    // Matx31d test_x(points2[0].x, points2[0].y, 1.0);
+    // cout<<"project back"<<P4_test*test_x<<endl;
+
+    //composing Essential matrix
+    double t_x = 1.0;
+    double t_y = 0.0;
+    double t_z = 0.0;
+    Matx33d t_skew = Matx33d(0, -t_z, t_y, t_z, 0, -t_x, -t_y, t_x, 0);
+    Matx33d R_skew = Matx33d(cos(theta), -sin(theta), 0, sin(theta), cos(theta), 0, 0, 0, 1);
+    Matx33d E_skew=t_skew*R_skew;
+    Matx44d P1_test_skew, P2_test_skew, P3_test_skew, P4_test_skew;
+    findPose(E_skew, P1_test_skew, P2_test_skew, P3_test_skew, P4_test_skew);
+    cout<<"P1_test_skew"<<P1_test_skew<<endl;
+    cout<<"P2_test_skew"<<P2_test_skew<<endl;
+    cout<<"P3_test_skew"<<P3_test_skew<<endl;
+    cout<<"P4_test_skew"<<P4_test_skew<<endl;
+    cout<<find3DX(P1_test_skew, points1, points2, K_ideal)<<endl;
+    cout<<find3DX(P2_test_skew, points1, points2, K_ideal)<<endl;
+    cout<<find3DX(P3_test_skew, points1, points2, K_ideal)<<endl;
+    cout<<find3DX(P4_test_skew, points1, points2, K_ideal)<<endl;
+
+
+    //-------------------start testing
+    
+
+
     
     return 0;
 }
