@@ -287,8 +287,8 @@ void findPose(const Matx33d &E, Matx44d &P1, Matx44d &P2, Matx44d &P3, Matx44d &
     //cout<<"S "<<S<<endl;
     S1 = scal*S1;
     S2 = scal*S2;
-    cout<<"S1 "<<S1<<endl;
-    cout<<"S2 "<<S2<<endl;
+    // cout<<"S1 "<<S1<<endl;
+    // cout<<"S2 "<<S2<<endl;
 
     SVD svd_S1(S1);
     cout<<"svd_S1.vt "<<svd_S1.vt<<endl;
@@ -296,6 +296,7 @@ void findPose(const Matx33d &E, Matx44d &P1, Matx44d &P2, Matx44d &P3, Matx44d &
     u3_1.at<double>(0,0) = svd_S1.vt.at<double>(2,0);
     u3_1.at<double>(1,0) = svd_S1.vt.at<double>(2,1);
     u3_1.at<double>(2,0) = svd_S1.vt.at<double>(2,2);
+    u3_1 = u3_1;
 
     SVD svd_S2(S2);
     cout<<"svd_S2.vt "<<svd_S2.vt<<endl;
@@ -303,6 +304,7 @@ void findPose(const Matx33d &E, Matx44d &P1, Matx44d &P2, Matx44d &P3, Matx44d &
     u3_2.at<double>(0,0) = svd_S2.vt.at<double>(2,0);
     u3_2.at<double>(1,0) = svd_S2.vt.at<double>(2,1);
     u3_2.at<double>(2,0) = svd_S2.vt.at<double>(2,2);
+    u3_2 = u3_2;
     //P1=====
     for (int i=0; i<3; i++)
     {
@@ -358,6 +360,7 @@ void findPose(const Matx33d &E, Matx44d &P1, Matx44d &P2, Matx44d &P3, Matx44d &
    
 }
 
+
 int find3DX(Matx44d P, vector<cv::Point2f> prev_point, vector<cv::Point2f> next_point , Matx33d K)
 {
     Matx34d Proj(1, 0, 0, 0, 0 ,1, 0, 0, 0, 0, 1, 0);
@@ -403,6 +406,92 @@ int find3DX(Matx44d P, vector<cv::Point2f> prev_point, vector<cv::Point2f> next_
 
         }
     return count;
+}
+
+void testRT()
+{
+    //-------------------start testing
+    //Create a random 3D scene
+	cv::Mat points3D(1, 16, CV_64FC4);
+	cv::randu(points3D, cv::Scalar(-5.0, -5.0, 1.0, 1.0), cv::Scalar(5.0, 5.0, 10.0, 1.0 ));
+
+
+	//Compute 2 camera matrices
+	cv::Matx34d C1 = cv::Matx34d::eye();
+	cv::Matx34d C2 = cv::Matx34d::eye();
+	cv::Matx33d K_ideal= cv::Matx33d::eye();
+    double theta = M_PI/3;
+    // C2(0,0) = cos(theta);
+    // C2(0,1) = -sin(theta);
+    // C2(1,0) = sin(theta);
+    // C2(1,1) = cos(theta);
+	C2(0, 3) = 10.0;
+
+	//Compute points projection
+	std::vector<cv::Point2f> points1;
+	std::vector<cv::Point2f> points2;
+
+	for(size_t i = 0; i < points3D.cols; i++)
+	{
+		cv::Vec3d hpt1 = C1*points3D.at<cv::Vec4d>(0, i);
+		cv::Vec3d hpt2 = C2*points3D.at<cv::Vec4d>(0, i);
+
+		hpt1 /= hpt1[2];
+		hpt2 /= hpt2[2];
+
+		cv::Point2f p1(hpt1[0], hpt1[1]);
+		cv::Point2f p2(hpt2[0], hpt2[1]);
+
+		points1.push_back(p1);
+		points2.push_back(p2);
+	}
+
+
+	//Print
+	std::cout <<"C1"<< C1 << std::endl;
+	std::cout <<"C2"<< C2 << std::endl;
+    std::cout <<"K"<< K_ideal << std::endl;
+	std::cout <<"points3D"<< points3D << std::endl;
+    cv::Matx33d F_test = Findfundamental(points1,points2);
+    Matx33d E_test = K_ideal.t() * F_test * K_ideal;
+
+    // cv::Matx33d F_test_cv = findFundamentalMat(points1, points2, FM_RANSAC, 1.5f, 0.99);
+    // Matx33d E_test = K_ideal.t() * F_test_cv * K_ideal;
+
+    Matx44d P1_test, P2_test, P3_test, P4_test;
+    findPose(E_test, P1_test, P2_test, P3_test, P4_test);
+    cout<<"P1_test"<<P1_test<<endl;
+    cout<<"P2_test"<<P2_test<<endl;
+    cout<<"P3_test"<<P3_test<<endl;
+    cout<<"P4_test"<<P4_test<<endl;
+    cout<<find3DX(P1_test, points1, points2, K_ideal)<<endl;
+    cout<<find3DX(P2_test, points1, points2, K_ideal)<<endl;
+    cout<<find3DX(P3_test, points1, points2, K_ideal)<<endl;
+    cout<<find3DX(P4_test, points1, points2, K_ideal)<<endl;
+
+    // Matx31d test_x(points2[0].x, points2[0].y, 1.0);
+    // cout<<"project back"<<P4_test*test_x<<endl;
+
+    //composing Essential matrix
+    double t_x = 10.0;
+    double t_y = 0.0;
+    double t_z = 0.0;
+    Matx33d t_skew = Matx33d(0, -t_z, t_y, t_z, 0, -t_x, -t_y, t_x, 0);
+    Matx33d R_skew = Matx33d(cos(theta), -sin(theta), 0, sin(theta), cos(theta), 0, 0, 0, 1);
+    Matx33d E_skew=t_skew*R_skew;
+    Matx44d P1_test_skew, P2_test_skew, P3_test_skew, P4_test_skew;
+    findPose(E_skew, P1_test_skew, P2_test_skew, P3_test_skew, P4_test_skew);
+    cout<<"P1_test_skew"<<P1_test_skew<<endl;
+    cout<<"P2_test_skew"<<P2_test_skew<<endl;
+    cout<<"P3_test_skew"<<P3_test_skew<<endl;
+    cout<<"P4_test_skew"<<P4_test_skew<<endl;
+    cout<<find3DX(P1_test_skew, points1, points2, K_ideal)<<endl;
+    cout<<find3DX(P2_test_skew, points1, points2, K_ideal)<<endl;
+    cout<<find3DX(P3_test_skew, points1, points2, K_ideal)<<endl;
+    cout<<find3DX(P4_test_skew, points1, points2, K_ideal)<<endl;
+
+
+    //-------------------end testing
 }
 
 int main( int argc, char** argv )
@@ -543,7 +632,7 @@ for(int i=0;i<niter;i++){
     double cy = fs["camera.cy"];
     Matx33d K(fx, 0.0, cx, 0.0, fy, cy, 0.0, 0.0, 1.0);
     Matx33d E = K.t() * F * K;
-    Matx44d P1, P2, P3, P4;
+    Matx44d P1, P2, P3, P4, bestPose;
     findPose(E, P1, P2, P3, P4);
     
     cout<<"P1 "<<P1<<endl;
@@ -554,102 +643,27 @@ for(int i=0;i<niter;i++){
     // cv::Mat R;
 	// cv::Mat t;
 	// recoverPose((Mat)F2, prev_subset, next_subset, K, R, t);
+    vector<Matx44d> poseList = {P1, P2, P3, P4};
+    int poseInliers = 0;
 
+    for(int i = 0; i<4; i++)
+    {
+        int tempInliers = find3DX(poseList[i], prev_subset, next_subset, K);
+        if(tempInliers > poseInliers)
+        {
+            poseInliers=tempInliers;
+            bestPose=poseList[i];
+            cout<<tempInliers<<endl;
+        }
+    }
 
-    cout<<find3DX(P1, prev_subset, next_subset, K)<<endl;
-    cout<<find3DX(P2, prev_subset, next_subset, K)<<endl;
-    cout<<find3DX(P3, prev_subset, next_subset, K)<<endl;
-    cout<<find3DX(P4, prev_subset, next_subset, K)<<endl;
+    
+
 
     cout<<"Fundamental matrix\n"<<K<<endl;
     cout<<"Essential matrix"<<E<<endl;
     //Matx33d W(0, -1.0, 0, 1.0, 0, 0, 0, 0, 1.0);
+    //testRT();
 
-    //-------------------start testing
-    //Create a random 3D scene
-	cv::Mat points3D(1, 16, CV_64FC4);
-	cv::randu(points3D, cv::Scalar(-5.0, -5.0, 1.0, 1.0), cv::Scalar(5.0, 5.0, 10.0, 1.0 ));
-
-
-	//Compute 2 camera matrices
-	cv::Matx34d C1 = cv::Matx34d::eye();
-	cv::Matx34d C2 = cv::Matx34d::eye();
-	cv::Matx33d K_ideal= cv::Matx33d::eye();
-    double theta = M_PI/3;
-    C2(0,0) = cos(theta);
-    C2(0,1) = -sin(theta);
-    C2(1,0) = sin(theta);
-    C2(1,1) = cos(theta);
-	C2(0, 3) = 1.0;
-
-	//Compute points projection
-	std::vector<cv::Point2f> points1;
-	std::vector<cv::Point2f> points2;
-
-	for(size_t i = 0; i < points3D.cols; i++)
-	{
-		cv::Vec3d hpt1 = C1*points3D.at<cv::Vec4d>(0, i);
-		cv::Vec3d hpt2 = C2*points3D.at<cv::Vec4d>(0, i);
-
-		hpt1 /= hpt1[2];
-		hpt2 /= hpt2[2];
-
-		cv::Point2f p1(hpt1[0], hpt1[1]);
-		cv::Point2f p2(hpt2[0], hpt2[1]);
-
-		points1.push_back(p1);
-		points2.push_back(p2);
-	}
-
-
-	//Print
-	std::cout <<"C1"<< C1 << std::endl;
-	std::cout <<"C2"<< C2 << std::endl;
-    std::cout <<"K"<< K_ideal << std::endl;
-	std::cout <<"points3D"<< points3D << std::endl;
-    cv::Matx33d F_test = Findfundamental(points1,points2);
-    Matx33d E_test = K_ideal.t() * F_test * K_ideal;
-
-    // cv::Matx33d F_test_cv = findFundamentalMat(points1, points2, FM_RANSAC, 1.5f, 0.99);
-    // Matx33d E_test = K_ideal.t() * F_test_cv * K_ideal;
-
-    Matx44d P1_test, P2_test, P3_test, P4_test;
-    findPose(E_test, P1_test, P2_test, P3_test, P4_test);
-    cout<<"P1_test"<<P1_test<<endl;
-    cout<<"P2_test"<<P2_test<<endl;
-    cout<<"P3_test"<<P3_test<<endl;
-    cout<<"P4_test"<<P4_test<<endl;
-    cout<<find3DX(P1_test, points1, points2, K_ideal)<<endl;
-    cout<<find3DX(P2_test, points1, points2, K_ideal)<<endl;
-    cout<<find3DX(P3_test, points1, points2, K_ideal)<<endl;
-    cout<<find3DX(P4_test, points1, points2, K_ideal)<<endl;
-
-    // Matx31d test_x(points2[0].x, points2[0].y, 1.0);
-    // cout<<"project back"<<P4_test*test_x<<endl;
-
-    //composing Essential matrix
-    double t_x = 1.0;
-    double t_y = 0.0;
-    double t_z = 0.0;
-    Matx33d t_skew = Matx33d(0, -t_z, t_y, t_z, 0, -t_x, -t_y, t_x, 0);
-    Matx33d R_skew = Matx33d(cos(theta), -sin(theta), 0, sin(theta), cos(theta), 0, 0, 0, 1);
-    Matx33d E_skew=t_skew*R_skew;
-    Matx44d P1_test_skew, P2_test_skew, P3_test_skew, P4_test_skew;
-    findPose(E_skew, P1_test_skew, P2_test_skew, P3_test_skew, P4_test_skew);
-    cout<<"P1_test_skew"<<P1_test_skew<<endl;
-    cout<<"P2_test_skew"<<P2_test_skew<<endl;
-    cout<<"P3_test_skew"<<P3_test_skew<<endl;
-    cout<<"P4_test_skew"<<P4_test_skew<<endl;
-    cout<<find3DX(P1_test_skew, points1, points2, K_ideal)<<endl;
-    cout<<find3DX(P2_test_skew, points1, points2, K_ideal)<<endl;
-    cout<<find3DX(P3_test_skew, points1, points2, K_ideal)<<endl;
-    cout<<find3DX(P4_test_skew, points1, points2, K_ideal)<<endl;
-
-
-    //-------------------start testing
-    
-
-
-    
     return 0;
 }
