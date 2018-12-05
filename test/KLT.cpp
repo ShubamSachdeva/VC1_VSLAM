@@ -419,15 +419,15 @@ Vector<cv::Point3f> triangulationPoints(Matx44d P, vector<cv::Point2f> prev_poin
     Matx34d P1 = K*Proj*R*Translation;
     for(size_t i=0; i<prev_point.size(); i++)
     {
-        cout<<"the prev point "<<prev_point[i]<<endl;
-        cout<<"the next point "<<next_point[i]<<endl;
+        //cout<<"the prev point "<<prev_point[i]<<endl;
+        //cout<<"the next point "<<next_point[i]<<endl;
         Mat A(4,4,CV_64FC1) ;
         A.row(0) = prev_point[i].x*Mat(P1.row(2)) - Mat(P1.row(0));
         A.row(1) = prev_point[i].y*Mat(P1.row(2)) - Mat(P1.row(1));
         A.row(2) = next_point[i].x*Mat((K*Proj*P).row(2)) - Mat((K*Proj*P).row(0));
         A.row(3) = next_point[i].y*Mat((K*Proj*P).row(2)) - Mat((K*Proj*P).row(1));
         
-        cout<<"this is the A from tran"<<A<<endl;
+        //cout<<"this is the A from tran"<<A<<endl;
 
         SVD svd(A);
 
@@ -435,7 +435,7 @@ Vector<cv::Point3f> triangulationPoints(Matx44d P, vector<cv::Point2f> prev_poin
         double b = svd.vt.at<double>(3,1);
         double c = svd.vt.at<double>(3,2);
         double d = svd.vt.at<double>(3,3);
-        cout<<"before 1d "<<a<<" "<<b<<" "<<c<<" "<<d<<endl;
+        //cout<<"before 1d "<<a<<" "<<b<<" "<<c<<" "<<d<<endl;
         worldPoints.push_back(Point3f(a/d, b/d, c/d));
     }
     return worldPoints;
@@ -458,7 +458,7 @@ void testRT()
     C2(0,1) = -sin(theta);
     C2(1,0) = sin(theta);
     C2(1,1) = cos(theta);
-	C2(2, 3) = 1.0;
+	//C2(2, 3) = 1.0;
 
 	//Compute points projection
 	std::vector<cv::Point2f> points1;
@@ -507,7 +507,7 @@ void testRT()
     // cout<<"project back"<<P4_test*test_x<<endl;
 
     //composing Essential matrix
-    double t_x = 10.0;
+    double t_x = 0.0;
     double t_y = 0.0;
     double t_z = 0.0;
     Matx33d t_skew = Matx33d(0, -t_z, t_y, t_z, 0, -t_x, -t_y, t_x, 0);
@@ -703,7 +703,7 @@ for(int i=0;i<niter;i++){
     Matx34d bestCameraPose = K*Proj*bestPose;
     cout<<"Best Camera Pose "<<bestCameraPose<<endl;
     //Matx33d W(0, -1.0, 0, 1.0, 0, 0, 0, 0, 1.0);
-    //testRT();
+    testRT();
     Vector<Point3f> test = triangulationPoints(bestPose, prev_subset, next_subset, K);
     for(int i=0; i<test.size(); i++)
     {
