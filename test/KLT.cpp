@@ -205,6 +205,8 @@ cv::Matx33d Findfundamental(vector<cv::Point2f> prev_subset,vector<cv::Point2f> 
     f_test = svd_F.u * sigma_2 * svd_F.vt;
     f_test = (N.t()*f_test*N);
     //cout<<"sigma_2============"<<sigma_2<<endl;
+    // f_test /= f_test.at<double>(2,2);
+
     F= f_test;
 
     // cout<<"verification!!!!!!!! "<<X1T*f_test*X2<<endl;
@@ -408,6 +410,37 @@ int find3DX(Matx44d P, vector<cv::Point2f> prev_point, vector<cv::Point2f> next_
     return count;
 }
 
+Vector<cv::Point3f> triangulationPoints(Matx44d P, vector<cv::Point2f> prev_point, vector<cv::Point2f> next_point , Matx33d K)
+{
+    Vector <cv::Point3f> worldPoints;
+    Matx34d Proj(1, 0, 0, 0, 0 ,1, 0, 0, 0, 0, 1, 0);
+    Matx44d R(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+    Matx44d Translation(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+    Matx34d P1 = K*Proj*R*Translation;
+    for(size_t i=0; i<prev_point.size(); i++)
+    {
+        cout<<"the prev point "<<prev_point[i]<<endl;
+        cout<<"the next point "<<next_point[i]<<endl;
+        Mat A(4,4,CV_64FC1) ;
+        A.row(0) = prev_point[i].x*Mat(P1.row(2)) - Mat(P1.row(0));
+        A.row(1) = prev_point[i].y*Mat(P1.row(2)) - Mat(P1.row(1));
+        A.row(2) = next_point[i].x*Mat((K*Proj*P).row(2)) - Mat((K*Proj*P).row(0));
+        A.row(3) = next_point[i].y*Mat((K*Proj*P).row(2)) - Mat((K*Proj*P).row(1));
+        
+        cout<<"this is the A from tran"<<A<<endl;
+
+        SVD svd(A);
+
+        double a = svd.vt.at<double>(3,0);
+        double b = svd.vt.at<double>(3,1);
+        double c = svd.vt.at<double>(3,2);
+        double d = svd.vt.at<double>(3,3);
+        cout<<"before 1d "<<a<<" "<<b<<" "<<c<<" "<<d<<endl;
+        worldPoints.push_back(Point3f(a/d, b/d, c/d));
+    }
+    return worldPoints;
+}
+
 void testRT()
 {
     //-------------------start testing
@@ -421,11 +454,11 @@ void testRT()
 	cv::Matx34d C2 = cv::Matx34d::eye();
 	cv::Matx33d K_ideal= cv::Matx33d::eye();
     double theta = M_PI/3;
-    // C2(0,0) = cos(theta);
-    // C2(0,1) = -sin(theta);
-    // C2(1,0) = sin(theta);
-    // C2(1,1) = cos(theta);
-	C2(0, 3) = 10.0;
+    C2(0,0) = cos(theta);
+    C2(0,1) = -sin(theta);
+    C2(1,0) = sin(theta);
+    C2(1,1) = cos(theta);
+	C2(2, 3) = 1.0;
 
 	//Compute points projection
 	std::vector<cv::Point2f> points1;
@@ -455,7 +488,8 @@ void testRT()
     cv::Matx33d F_test = Findfundamental(points1,points2);
     Matx33d E_test = K_ideal.t() * F_test * K_ideal;
 
-    // cv::Matx33d F_test_cv = findFundamentalMat(points1, points2, FM_RANSAC, 1.5f, 0.99);
+    cv::Matx33d F_test_cv = findFundamentalMat(points1, points2, FM_RANSAC, 1.5f, 0.99);
+    cout<<"opencv Fmat: "<<F_test_cv<<endl;
     // Matx33d E_test = K_ideal.t() * F_test_cv * K_ideal;
 
     Matx44d P1_test, P2_test, P3_test, P4_test;
@@ -489,6 +523,11 @@ void testRT()
     cout<<find3DX(P2_test_skew, points1, points2, K_ideal)<<endl;
     cout<<find3DX(P3_test_skew, points1, points2, K_ideal)<<endl;
     cout<<find3DX(P4_test_skew, points1, points2, K_ideal)<<endl;
+    Vector<Point3f> test = triangulationPoints(P2_test, points1, points1 , K_ideal);
+    for(int i=0; i<test.size(); i++)
+    {
+        cout<<test[i]<<endl;
+    }
 
 
     //-------------------end testing
@@ -657,13 +696,19 @@ for(int i=0;i<niter;i++){
         }
     }
 
-    
-
-
-    cout<<"Fundamental matrix\n"<<K<<endl;
+    cout<<"Fundamental matrix\n"<<F<<endl;
     cout<<"Essential matrix"<<E<<endl;
+    cout<<"Best R & T is "<<bestPose<<endl;
+    Matx34d Proj(1, 0, 0, 0, 0 ,1, 0, 0, 0, 0, 1, 0);
+    Matx34d bestCameraPose = K*Proj*bestPose;
+    cout<<"Best Camera Pose "<<bestCameraPose<<endl;
     //Matx33d W(0, -1.0, 0, 1.0, 0, 0, 0, 0, 1.0);
     //testRT();
+    Vector<Point3f> test = triangulationPoints(bestPose, prev_subset, next_subset, K);
+    for(int i=0; i<test.size(); i++)
+    {
+        cout<<test[i]<<endl;
+    }
 
     return 0;
 }
