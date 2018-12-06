@@ -270,7 +270,7 @@ void findPose(const Matx33d &E, Matx44d &P1, Matx44d &P2, Matx44d &P3, Matx44d &
 {
     Matx33d W(0.0, -1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0);
     Matx33d Z(0.0, 1.0, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0, 0.0);
-    cout<<"E thi is testing"<<E<<endl;
+    //cout<<"E thi is testing"<<E<<endl;
     SVD svd(E);
     // auto S1 = -svd.u * Mat(Z) * svd.u.t();
     Mat R1 = svd.u * Mat(W).t() * svd.vt;
@@ -282,8 +282,8 @@ void findPose(const Matx33d &E, Matx44d &P1, Matx44d &P2, Matx44d &P3, Matx44d &
         R2=-R2;
 
     double scal = (svd.w.at<double>(0,0)+svd.w.at<double>(1,0))/2; 
-    cout<<"svd(E) w"<<svd.w<<endl;
-    cout<<"scalar "<<scal<<endl;
+    // cout<<"svd(E) w"<<svd.w<<endl;
+    // cout<<"scalar "<<scal<<endl;
     Mat S1 = -svd.u * Mat(Z) * svd.u.t();
     Mat S2 = svd.u * Mat(Z) * svd.u.t();
     //cout<<"S "<<S<<endl;
@@ -293,7 +293,7 @@ void findPose(const Matx33d &E, Matx44d &P1, Matx44d &P2, Matx44d &P3, Matx44d &
     // cout<<"S2 "<<S2<<endl;
 
     SVD svd_S1(S1);
-    cout<<"svd_S1.vt "<<svd_S1.vt<<endl;
+    //cout<<"svd_S1.vt "<<svd_S1.vt<<endl;
     Mat u3_1(3, 1, CV_64FC1);
     u3_1.at<double>(0,0) = svd_S1.vt.at<double>(2,0);
     u3_1.at<double>(1,0) = svd_S1.vt.at<double>(2,1);
@@ -301,7 +301,7 @@ void findPose(const Matx33d &E, Matx44d &P1, Matx44d &P2, Matx44d &P3, Matx44d &
     u3_1 = u3_1;
 
     SVD svd_S2(S2);
-    cout<<"svd_S2.vt "<<svd_S2.vt<<endl;
+    //cout<<"svd_S2.vt "<<svd_S2.vt<<endl;
     Mat u3_2(3, 1, CV_64FC1);
     u3_2.at<double>(0,0) = svd_S2.vt.at<double>(2,0);
     u3_2.at<double>(1,0) = svd_S2.vt.at<double>(2,1);
@@ -458,7 +458,7 @@ void testRT()
     C2(0,1) = -sin(theta);
     C2(1,0) = sin(theta);
     C2(1,1) = cos(theta);
-	//C2(2, 3) = 1.0;
+	C2(2, 3) = 1.0;
 
 	//Compute points projection
 	std::vector<cv::Point2f> points1;
@@ -479,19 +479,17 @@ void testRT()
 		points2.push_back(p2);
 	}
 
-
 	//Print
 	std::cout <<"C1"<< C1 << std::endl;
 	std::cout <<"C2"<< C2 << std::endl;
-    std::cout <<"K"<< K_ideal << std::endl;
-	std::cout <<"points3D"<< points3D << std::endl;
+    std::cout <<"K "<< K_ideal << std::endl;
+	
+    //========= test Find Fundamental Matrix ========
     cv::Matx33d F_test = Findfundamental(points1,points2);
     Matx33d E_test = K_ideal.t() * F_test * K_ideal;
-
-    cv::Matx33d F_test_cv = findFundamentalMat(points1, points2, FM_RANSAC, 1.5f, 0.99);
-    cout<<"opencv Fmat: "<<F_test_cv<<endl;
+    // cv::Matx33d F_test_cv = findFundamentalMat(points1, points2, FM_RANSAC, 1.5f, 0.99);
+    // cout<<"opencv Fmat: "<<F_test_cv<<endl;
     // Matx33d E_test = K_ideal.t() * F_test_cv * K_ideal;
-
     Matx44d P1_test, P2_test, P3_test, P4_test;
     findPose(E_test, P1_test, P2_test, P3_test, P4_test);
     cout<<"P1_test"<<P1_test<<endl;
@@ -503,18 +501,17 @@ void testRT()
     cout<<find3DX(P3_test, points1, points2, K_ideal)<<endl;
     cout<<find3DX(P4_test, points1, points2, K_ideal)<<endl;
 
-    // Matx31d test_x(points2[0].x, points2[0].y, 1.0);
-    // cout<<"project back"<<P4_test*test_x<<endl;
-
-    //composing Essential matrix
+    //====== test Find Pose =====
     double t_x = 0.0;
     double t_y = 0.0;
-    double t_z = 0.0;
+    double t_z = 1.0;
     Matx33d t_skew = Matx33d(0, -t_z, t_y, t_z, 0, -t_x, -t_y, t_x, 0);
     Matx33d R_skew = Matx33d(cos(theta), -sin(theta), 0, sin(theta), cos(theta), 0, 0, 0, 1);
     Matx33d E_skew=t_skew*R_skew;
     Matx44d P1_test_skew, P2_test_skew, P3_test_skew, P4_test_skew;
     findPose(E_skew, P1_test_skew, P2_test_skew, P3_test_skew, P4_test_skew);
+    std::cout <<"C1"<< C1 << std::endl;
+	std::cout <<"C2"<< C2 << std::endl;
     cout<<"P1_test_skew"<<P1_test_skew<<endl;
     cout<<"P2_test_skew"<<P2_test_skew<<endl;
     cout<<"P3_test_skew"<<P3_test_skew<<endl;
@@ -528,7 +525,6 @@ void testRT()
     {
         cout<<test[i]<<endl;
     }
-
 
     //-------------------end testing
 }
@@ -620,7 +616,7 @@ for(int i=0;i<niter;i++){
             if(checkinlier(kps_prev[j],kps_next[j],Fcandidate,d))
                 inliers++;
         }
-        cout<<i<<" th inliers"<<inliers<<endl;
+        //cout<<i<<" th inliers"<<inliers<<endl;
         if(inliers > bestinliers)
         {
             F = Fcandidate;
@@ -692,7 +688,7 @@ for(int i=0;i<niter;i++){
         {
             poseInliers=tempInliers;
             bestPose=poseList[i];
-            cout<<tempInliers<<endl;
+            cout<<i<<"th P inliers "<<tempInliers<<endl;
         }
     }
 
@@ -703,7 +699,7 @@ for(int i=0;i<niter;i++){
     Matx34d bestCameraPose = K*Proj*bestPose;
     cout<<"Best Camera Pose "<<bestCameraPose<<endl;
     //Matx33d W(0, -1.0, 0, 1.0, 0, 0, 0, 0, 1.0);
-    testRT();
+    //testRT();
     Vector<Point3f> test = triangulationPoints(bestPose, prev_subset, next_subset, K);
     for(int i=0; i<test.size(); i++)
     {
